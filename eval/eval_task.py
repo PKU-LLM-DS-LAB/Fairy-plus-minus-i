@@ -12,9 +12,6 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 import os
 
-os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
-
-
 parser = argparse.ArgumentParser()
 parser.add_argument("--seed", default=42, type=int)
 parser.add_argument("--hf_path", default="1bitLLM/bitnet_b1_58-3B", type=str)

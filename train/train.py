@@ -1,7 +1,4 @@
 import os
-
-os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
-
 import time
 from datasets import load_from_disk
 from transformers import (
@@ -25,6 +22,10 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset_path", type=str, required=True,
                     help="Path to dataset")
+parser.add_argument("--report_to", type=str, default="none",
+                    help="Logging integration passed to TrainingArguments, e.g. none, swanlab, tensorboard")
+parser.add_argument("--swanlab_workspace", type=str, default=None,
+                    help="SwanLab workspace (organization); defaults to your personal workspace")
 args = parser.parse_args()
 tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf")
 if tokenizer.pad_token is None:
@@ -106,7 +107,7 @@ training_args = TrainingArguments(
     num_train_epochs=1,
     per_device_train_batch_size=PER_DEVICE_BS,
     learning_rate=1.5e-3,
-    max_grad_norm=2.0,
+    max_grad_norm=1.0,
     warmup_steps=375,
     weight_decay=0.1,
     logging_dir=LOGGING_DIR,
@@ -115,7 +116,7 @@ training_args = TrainingArguments(
     bf16=True,
     adam_beta1=0.9,
     adam_beta2=0.95,
-    report_to="swanlab",
+    report_to=args.report_to,
     logging_steps=10,
     save_total_limit=100,
 )
@@ -137,18 +138,19 @@ if accelerator.is_main_process:
 
 
 callbacks = []
-if accelerator.is_main_process:
+use_swanlab = accelerator.is_main_process and args.report_to == "swanlab"
+if use_swanlab:
     import swanlab as swanlab
     from swanlab.integration.transformers import SwanLabCallback
     from swanlab import Settings
     cfg = training_args.to_dict()
     cfg["model_type"] = "ComplexNetLM"
-    cfg["dataset"] = "RedPajama-Data-v2"
+    cfg["dataset"] = "RedPajama-Data-1T-100B"
     cfg["max_length"] = 2048  
     swanlab.init(
-        workspace="ComplexTrain",
-        project="complexnet-training-0606",
-        name=time.strftime("%m%d%H%M%S") + "flashquant" + "redpajama_100B_H100",
+        workspace=args.swanlab_workspace,
+        project="complexnet-training",
+        name=time.strftime("%m%d%H%M%S") + "redpajama_100B",
         config=cfg,
         settings=Settings(
             requirements_collect=False,
@@ -223,5 +225,5 @@ try:
     tokenizer.save_pretrained(OUTPUT_MODEL_DIR)
 
 finally:
-    if accelerator.is_main_process:
+    if use_swanlab:
         swanlab.finish()

@@ -1,7 +1,4 @@
 import os
-
-os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
-
 import gzip
 import io
 import json

@@ -14,16 +14,10 @@ def set_seed(seed):
 
 def get_test_dataset(dataset_name, tokenizer, seqlen=2048):
     if dataset_name == "wikitext2":
-        testdata = load_dataset(
-            "/root/.cache/huggingface/datasets/wikitext/wikitext-2-raw-v1/0.0.0/eeccd6e914e980ab",
-            split="test",
-        )
-        testdata = "".join(testdata["text"]).split("\n")
+        testdata = load_dataset('wikitext', 'wikitext-2-raw-v1', split='test')
+        testdata = "".join(testdata['text']).split('\n')
     elif dataset_name == "c4":
-        testdata = load_dataset(
-            "/root/.cache/huggingface/datasets/allenai___c4/default-c7bc8b0aefc5e48f/0.0.0/8bb11242116d547c741b2e8a1f18598ffdd40a1d4f2a2872c7a28b697434bc96",
-            split="validation",
-        )["text"]
+        testdata = load_dataset('allenai/c4', data_files={'validation': 'en/c4-validation.00000-of-00008.json.gz'}, split='validation')['text']
     else:
         raise NotImplementedError
 

@@ -1,12 +1,12 @@
 compute_environment: LOCAL_MACHINE
 debug: false
 deepspeed_config:
-  gradient_clipping: 2.0
+  gradient_clipping: 1.0
   deepspeed_multinode_launcher: standard
   offload_optimizer_device: none
   offload_param_device: none
   zero3_init_flag: false
-  zero_stage: 1
+  zero_stage: 2
   activation_checkpointing:
     partition_activations: true
     contiguous_memory_optimization: true
